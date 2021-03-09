@@ -3,6 +3,7 @@ import card from "./assets/cardBack_green5.png";
 import cursor from "./assets/cursorGauntlet_grey.png";
 import left from "./assets/arrowSilver_left.png";
 import right from "./assets/arrowSilver_right.png";
+import buy from "./assets/buy.png";
 import swal from 'sweetalert';
 
 // import font from "./assets/sheet.png";
@@ -54,6 +55,10 @@ let cardName = '';
 let points;
 let tips;
 
+let coin;
+let insertedCoins;
+let buyButton;
+
 const game = new Phaser.Game(config);
 
 function currentSuit()
@@ -87,18 +92,54 @@ function preload() {
   this.load.image("cursor", cursor);
   this.load.image("left", left);
   this.load.image("right", right);
-
+  this.load.image("buy", buy);
 //   this.load.bitmapFont('sheet',font,fontXML);
 //   this.load.bitmapFont('sheet','src/assets/sheet.png','src/assets/sheet.xml');
   
-   points = this.add.text(x - 300,y - 200, "Points: 0");
+   points = this.add.text(x - 80,y - 150, "BlackJack Points: 0");
    tips = this.add.text(x - 300 ,y - 220, "");
+   coin = this.add.text(x - 300 ,y - 220, "0");
+   coin.setDepth(5); 
+   coin.setStyle({
+	font: 'bold 30px Arial',
+	fill: 'black'
+	});
+	
+	insertedCoins = 0;
+}
 
+function updateCoins(coins) {
+	insertedCoins = coins + 10;
+	coin.setText(insertedCoins);
+    console.log(insertedCoins);
+}
+
+function lostCoins(coins){
+	insertedCoins = coins - 10;
+	coin.setText(insertedCoins);
+    console.log(insertedCoins);
+}
+
+function insertCoins(){
+	swal({
+		title: "Oh no!",
+		text: "You need 10 coins to continue!",
+		icon: "warning",
+		button: "Ok!",
+		}).then((value)=>{
+		game.scene.resume("default");
+		});
 }
 
 function create()
 {	console.log("create");
 // this.add.bitmapText(0, 0, 'sheet', 'Hello World');
+	buyButton = this.add.image(x - 300, y - 200, 'buy');
+	buyButton.setScale(0.2);
+	buyButton.setInteractive() 
+	.on('pointerdown', () => updateCoins(insertedCoins));
+	
+
 
 	if (this.textures.exists(cardName))
 {
@@ -115,8 +156,17 @@ this.add.text(x + 160,y + 140, "Key Left: Next Card");
 let right = this.add.image(x + 140, y + 200, 'right');
 this.add.text(x + 160,y + 190, "Key Right: Remove Card");
 
+
 	const leftArrow = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
-	leftArrow.on('up', () => {  
+	leftArrow.on('up', () => {
+		
+		if(insertedCoins <= 0){
+			insertCoins();
+			return;
+		}else if(insertedCoins < 10){
+			insertCoins();
+			return;
+		}
 		console.log("left");
 
 		
@@ -239,6 +289,8 @@ function gameStatus(myTotal){
 				location.reload();
 			}
 		    });
+
+			lostCoins(insertedCoins);
 		
 	}
 
@@ -260,6 +312,8 @@ function gameStatus(myTotal){
 			    }
 			
 		    });
+
+			updateCoins(insertedCoins);
 		// game.scene.pause("default");
 	}
 	
